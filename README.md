@@ -6,10 +6,10 @@ This project, "Your IP Information", is a web application that provides informat
 
 ## Features
 
-- IP Address Information:** Displays IP address details, such as the IP itself, host name, city, region, country, location and organization.
+- **IP Address Information:** Displays IP address details, such as the IP itself, host name, city, region, country, location and organization.
 
-- Location Mapping:** Displays the location on an interactive map using Leaflet.
+- **Location Mapping:** Displays the location on an interactive map using Leaflet.
 
-- Content Blocking Detection:** Detects and notifies users if any browser extension blocks page content.
+- **Content Blocking Detection:** Detects and notifies users if any browser extension blocks page content.
 
 ![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)
