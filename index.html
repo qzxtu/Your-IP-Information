@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your IP Information</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+   crossorigin=""/>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+   crossorigin=""></script>
+   
+   <!-- Custom CSS -->
+   <style>
+       body {
+           background: linear-gradient(to right, #1E3A8A, #7E3A8A, #BD30A2);
+           font-family: Arial, sans-serif;
+           color: white;
+           margin: 0;
+           padding: 0;
+           transition: filter 0.3s; /* Transición para el efecto de desenfoque */
+       }
+
+       .container {
+           max-width: 800px;
+           margin: 0 auto;
+           padding: 20px;
+       }
+
+       h1 {
+           font-size: 36px;
+           font-weight: bold;
+           margin-bottom: 20px;
+           text-align: center;
+       }
+
+       .card {
+           background-color: rgba(255, 255, 255, 0.1);
+           border-radius: 10px;
+           padding: 20px;
+           margin-bottom: 20px;
+       }
+
+       .card h2 {
+           font-size: 24px;
+           font-weight: bold;
+           margin-bottom: 10px;
+       }
+
+       .map {
+           height: 400px;
+           border-radius: 10px;
+           margin-top: 20px;
+       }
+
+       /* Custom Modal Styles */
+       .modal {
+           display: none;
+           position: fixed;
+           top: 0;
+           left: 0;
+           width: 100%;
+           height: 100%;
+           background-color: rgba(0, 0, 0, 0.5);
+           justify-content: center;
+           align-items: center;
+           z-index: 999;
+           backdrop-filter: blur(5px); /* Efecto de desenfoque en el fondo */
+       }
+
+       .modal-content {
+           background-color: #333; /* Cambia el color de fondo del modal según tu diseño */
+           border-radius: 10px;
+           padding: 20px;
+           text-align: center;
+           box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3); /* Agrega sombra al modal */
+       }
+
+       /* Close Button Styles */
+       .close-btn {
+           position: absolute;
+           top: 10px;
+           right: 10px;
+           cursor: pointer;
+       }
+   </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Your IP Information</h1>
+
+        <div class="card">
+            <h2>Details of Your IP</h2>
+            <div id="ipDetails">
+                <!-- IP details will be displayed here -->
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Location on Map</h2>
+            <div id="ipMap" class="map"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Blocking Extension -->
+    <div id="extensionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <p>Please disable any browser extensions that may be blocking this page's content and reload the page to see the information.</p>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Function to show the extension blocking modal and apply background blur
+        function showExtensionModal() {
+            const modal = document.getElementById('extensionModal');
+            modal.style.display = 'block';
+            
+            // Add the blur class to the body
+            document.body.classList.add('blur-background');
+        }
+
+        // Function to close the extension blocking modal and remove background blur
+        function closeExtensionModal() {
+            const modal = document.getElementById('extensionModal');
+            modal.style.display = 'none';
+            
+            // Remove the blur class from the body
+            document.body.classList.remove('blur-background');
+        }
+
+        // Check if an extension is blocking the content or if there's an error
+        async function checkExtensionBlocking() {
+            try {
+                const response = await fetch('https://ipinfo.io/json');
+                
+                if (!response.ok) {
+                    // If the response status is not OK, it indicates an issue (e.g., blocked by client)
+                    showExtensionModal();
+                } else {
+                    const data = await response.json();
+                    const ipDetails = document.getElementById('ipDetails');
+                    
+                    // Check if the ipDetails element is empty
+                    if (!ipDetails.innerHTML.trim()) {
+                        // Extension or other blocking issue
+                        showExtensionModal();
+                    } else {
+                        // No extension blocking, proceed to get and display IP details
+                        getIPDetails();
+                    }
+                }
+            } catch (error) {
+                // Handle errors (e.g., network issues)
+                showExtensionModal();
+                console.error('Error fetching IP details:', error);
+            }
+        }
+
+        // Function to fetch and display IP details
+        async function getIPDetails() {
+            try {
+                const response = await fetch('https://ipinfo.io/json');
+                const data = await response.json();
+                console.log(data);
+
+                const ipDetails = document.getElementById('ipDetails');
+                ipDetails.innerHTML = `
+                    <p><strong>IP:</strong> ${data.ip}</p>
+                    <p><strong>Hostname:</strong> ${data.hostname}</p>
+                    <p><strong>City:</strong> ${data.city}</p>
+                    <p><strong>Region:</strong> ${data.region}</p>
+                    <p><strong>Country:</strong> ${data.country}</p>
+                    <p><strong>Location:</strong> ${data.loc}</p>
+                    <p><strong>Organization:</strong> ${data.org}</p>
+                `;
+
+                const ipMap = L.map('ipMap').setView(data.loc.split(','), 10);
+                const attribution = 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+                const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+                const tiles = L.tileLayer(tileUrl, { attribution });
+                tiles.addTo(ipMap);
+
+                L.marker(data.loc.split(',')).addTo(ipMap)
+                    .bindPopup(`IP Location:<br>Lat: ${data.loc.split(',')[0]}, Lng: ${data.loc.split(',')[1]}`)
+                    .openPopup();
+            } catch (error) {
+                console.error('Error fetching IP details:', error);
+            }
+        }
+
+        // Call the function to check for extension blocking
+        checkExtensionBlocking();
+
+        // Close the extension blocking modal when the close button is clicked
+        document.getElementById('closeModal').addEventListener('click', closeExtensionModal);
+    </script>
+</body>
+</html>
